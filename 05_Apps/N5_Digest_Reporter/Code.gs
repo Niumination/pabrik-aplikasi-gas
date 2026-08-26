@@ -9,6 +9,34 @@
  */
 
 // =========================
+// HELPER: getSpreadsheet_ — works for both bound & standalone
+// =========================
+
+/**
+ * Get spreadsheet instance.
+ * Priority:
+ * 1. If script is bound to a spreadsheet, use getActiveSpreadsheet()
+ * 2. Else read SPREADSHEET_ID from UserProperties (set via setSpreadsheetId_)
+ * 3. Fallback to getActiveSpreadsheet() (will error if standalone without ID)
+ */
+function getSpreadsheet_() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) return ss;
+  } catch (e) {}
+  var id = PropertiesService.getUserProperties().getProperty('SPREADSHEET_ID');
+  if (!id) {
+    throw new Error('SPREADSHEET_ID belum di-set. Jalankan setupDigestSystem di bound script, atau panggil setSpreadsheetId_(<ID>) sekali.');
+  }
+  return SpreadsheetApp.openById(id);
+}
+
+function setSpreadsheetId_(id) {
+  PropertiesService.getUserProperties().setProperty('SPREADSHEET_ID', id);
+}
+
+
+// =========================
 // ENTRY POINTS (MENU / TRIGGER)
 // =========================
 
@@ -29,7 +57,7 @@ function runDigestNowForce() {
 
 /** Dipanggil trigger harian. */
 function triggerDailyDigest() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var mode = String(cfgGet_(ss, 'mode') || 'daily').toLowerCase();
   if (mode !== 'daily') {
     _logOnly_(ss, {
@@ -50,7 +78,7 @@ function triggerDailyDigest() {
 
 /** Dipanggil trigger mingguan — cek hari. */
 function triggerWeeklyDigest() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var mode = String(cfgGet_(ss, 'mode') || 'daily').toLowerCase();
   var tz = cfgGet_(ss, 'timezone') || DIGEST_SETUP.TZ;
   var want = parseInt(cfgGet_(ss, 'weekly_day') || '1', 10); // 1=Mon .. 7=Sun
@@ -96,7 +124,7 @@ function triggerWeeklyDigest() {
  */
 function _executeDigest_(opts) {
   var t0 = Date.now();
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var tz = cfgGet_(ss, 'timezone') || DIGEST_SETUP.TZ;
   var today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
 
@@ -540,21 +568,21 @@ function sendDigestEmail_(ss, recipients, cc, subject, html) {
 
 function installDailyTrigger() {
   removeDigestTriggers(true);
+  var ss = getSpreadsheet_();
   ScriptApp.newTrigger('triggerDailyDigest')
     .timeBased()
     .everyDays(1)
     .atHour(7)
     .nearMinute(30)
-    .inTimezone(cfgGet_(SpreadsheetApp.getActiveSpreadsheet(), 'timezone') || DIGEST_SETUP.TZ)
+    .inTimezone(cfgGet_(ss, 'timezone') || DIGEST_SETUP.TZ)
     .create();
   _uiAlert_('Trigger harian', 'Dipasang: triggerDailyDigest sekitar jam 07:30 timezone CONFIG.\nPastikan mode=daily & dry_run=FALSE saat produksi.');
 }
 
 function installWeeklyTrigger() {
   removeDigestTriggers(true);
-  // Apps Script weekly: Monday=... gunakan everyWeeks + cek hari di handler
-  // Lebih andal: daily trigger yang memanggil weekly handler, ATAU everyWeeks on Monday
-  var tz = cfgGet_(SpreadsheetApp.getActiveSpreadsheet(), 'timezone') || DIGEST_SETUP.TZ;
+  var ss = getSpreadsheet_();
+  var tz = cfgGet_(ss, 'timezone') || DIGEST_SETUP.TZ;
   ScriptApp.newTrigger('triggerWeeklyDigest')
     .timeBased()
     .everyDays(1)
@@ -563,7 +591,7 @@ function installWeeklyTrigger() {
     .inTimezone(tz)
     .create();
   // Handler sudah filter weekly_day
-  cfgSet_(SpreadsheetApp.getActiveSpreadsheet(), 'mode', 'weekly');
+  cfgSet_(ss, 'mode', 'weekly');
   _uiAlert_('Trigger mingguan', 'Dipasang pemeriksaan harian jam ~07:30; email hanya terkirim saat ISO day = CONFIG.weekly_day.\nmode di-set ke weekly.');
 }
 

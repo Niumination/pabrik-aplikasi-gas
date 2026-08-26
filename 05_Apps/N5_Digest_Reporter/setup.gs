@@ -37,7 +37,7 @@ function onOpen() {
  * Entry setup utama — idempotent untuk header CONFIG & struktur tab.
  */
 function setupDigestSystem() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   ss.rename('Digest Reporter — N5');
 
   _ensureConfig_(ss);
@@ -49,7 +49,7 @@ function setupDigestSystem() {
 
   seedDigestSampleData(true);
 
-  SpreadsheetApp.getActiveSpreadsheet().toast(
+  getSpreadsheet_().toast(
     'Setup selesai. Cek tab CONFIG, lalu jalankan Dry-run.',
     'N5 Digest',
     8
@@ -165,7 +165,7 @@ function _ensureLog_(ss) {
  * @param {boolean} [silent] — true saat dipanggil dari setup
  */
 function seedDigestSampleData(silent) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var tz = _cfg_(ss, 'timezone') || DIGEST_SETUP.TZ;
   var now = new Date();
   var today = Utilities.formatDate(now, tz, 'yyyy-MM-dd');
@@ -248,7 +248,7 @@ function seedDigestSampleData(silent) {
   }
 
   if (!silent) {
-    SpreadsheetApp.getActiveSpreadsheet().toast('Data sample diisi ulang.', 'N5 Digest', 5);
+    getSpreadsheet_().toast('Data sample diisi ulang.', 'N5 Digest', 5);
   }
 }
 

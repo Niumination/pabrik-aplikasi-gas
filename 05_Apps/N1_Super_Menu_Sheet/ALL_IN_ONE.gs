@@ -1,5 +1,22 @@
 /**
  * N1 Super Menu Sheet — ALL_IN_ONE.gs
+
+// =========================
+// HELPER: getSpreadsheet_ — works for both bound & standalone
+// =========================
+function getSpreadsheet_() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) return ss;
+  } catch (e) {}
+  var id = PropertiesService.getUserProperties().getProperty('SPREADSHEET_ID');
+  if (!id) throw new Error('SPREADSHEET_ID belum di-set. Bound script ke Sheet, atau panggil setSpreadsheetId_(<ID>).');
+  return SpreadsheetApp.openById(id);
+}
+function setSpreadsheetId_(id) {
+  PropertiesService.getUserProperties().setProperty('SPREADSHEET_ID', id);
+}
+
  * Kemasan: SHEET_ENGINE | v1.0.0
  * Bound ke Spreadsheet aktif.
  */
@@ -48,7 +65,7 @@ function onOpen() {
 // ═══════════════════════════════════════
 
 function setupSuperMenu() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   try {
     ss.rename('Super Menu Sheet — N1');
   } catch (e) {}
@@ -111,7 +128,7 @@ function ensureDash_(ss) {
 }
 
 function seedSampleData(silent) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var sh = ss.getSheetByName(SM.TABS.DATA);
   if (!sh) return;
   if (sh.getLastRow() > 1 && silent) return;
@@ -137,7 +154,7 @@ function seedSampleData(silent) {
 // ═══════════════════════════════════════
 
 function opValidate() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var sh = ss.getSheetByName(SM.TABS.DATA);
   opClearHighlights(true);
 
@@ -179,7 +196,7 @@ function opValidate() {
 }
 
 function opMarkDuplicates() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var sh = ss.getSheetByName(SM.TABS.DATA);
   var key = cfg_(ss, 'duplicate_key') || SM.KEY_DUP;
   var col = SM.HEADERS.indexOf(key) + 1;
@@ -213,7 +230,7 @@ function opMarkDuplicates() {
 }
 
 function opGenerateIds() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var sh = ss.getSheetByName(SM.TABS.DATA);
   var tz = cfg_(ss, 'timezone') || SM.TZ;
   var now = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd HH:mm:ss');
@@ -237,7 +254,7 @@ function opGenerateIds() {
 }
 
 function opArchiveDone() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var ui = SpreadsheetApp.getUi();
   var conf = ui.alert(
     'Arsipkan?',
@@ -270,7 +287,7 @@ function opArchiveDone() {
 }
 
 function opRebuildDashboard(silent) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var sh = ss.getSheetByName(SM.TABS.DATA);
   var dash = ss.getSheetByName(SM.TABS.DASH);
   var tz = cfg_(ss, 'timezone') || SM.TZ;
@@ -304,7 +321,7 @@ function opRebuildDashboard(silent) {
 }
 
 function opClearHighlights(silent) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = getSpreadsheet_();
   var sh = ss.getSheetByName(SM.TABS.DATA);
   var last = sh.getLastRow();
   var cols = sh.getLastColumn();
