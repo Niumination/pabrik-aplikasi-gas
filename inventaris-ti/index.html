@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!-- index.html — Inventaris Aset TI (Pilot Pabrik). Mobile-first, tanpa animasi dekoratif. -->
+<html lang="id">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --bg: #f4f6f8; --card: #fff; --ink: #1c2733; --muted: #5b6b7a;
+      --line: #d9e1e8; --accent: #0b6bcb; --ok: #1e7e34; --warn: #b7791f; --bad: #c0392b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 15px/1.45 -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    header {
+      background: var(--card); border-bottom: 1px solid var(--line);
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 17px; margin: 0; }
+    .badge { background: var(--accent); color: #fff; border-radius: 12px; padding: 2px 10px; font-size: 13px; }
+    main { max-width: 720px; margin: 0 auto; padding: 12px 12px 90px; }
+    .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+    .chip { background: var(--card); border: 1px solid var(--line); border-radius: 8px; text-align: center; padding: 8px 4px; }
+    .chip b { display: block; font-size: 18px; }
+    .chip span { color: var(--muted); font-size: 11px; }
+    .toolbar { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+    input[type="text"], select, input[type="date"] {
+      width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--card); font-size: 15px;
+    }
+    .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    button {
+      min-height: 44px; padding: 10px 14px; border: none; border-radius: 8px;
+      font-size: 15px; cursor: pointer; background: var(--accent); color: #fff;
+    }
+    button[disabled] { opacity: .55; cursor: default; }
+    .btn-ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+    .btn-danger { background: var(--bad); }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+      padding: 12px; margin-bottom: 8px;
+    }
+    .card .kode { font-weight: 700; }
+    .card .meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .card .aksi { display: flex; gap: 8px; margin-top: 8px; }
+    .card .aksi button { min-height: 36px; padding: 6px 12px; font-size: 13px; flex: 1; }
+    .pill { display: inline-block; border-radius: 10px; padding: 1px 8px; font-size: 12px; margin-right: 4px; }
+    .pill.baik { background: #e3f4e6; color: var(--ok); }
+    .pill.rusak { background: #fdecea; color: var(--bad); }
+    .pill.hilang { background: #eee; color: var(--muted); }
+    .pill.tersedia { background: #e3f4e6; color: var(--ok); }
+    .pill.dipakai { background: #fdf3e0; color: var(--warn); }
+    .pill.dipinjam { background: #e8eefc; color: #2456b3; }
+    .empty { text-align: center; color: var(--muted); padding: 28px 8px; }
+    /* Overlay form & dialog */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(20,30,40,.45);
+      display: none; align-items: flex-end; justify-content: center;
+    }
+    .overlay.show { display: flex; }
+    .panel {
+      background: var(--card); width: 100%; max-width: 720px;
+      border-radius: 14px 14px 0 0; padding: 16px; max-height: 92vh; overflow-y: auto;
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 16px; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .field label .req { color: var(--bad); }
+    .form-actions { display: flex; gap: 8px; }
+    .form-actions button { flex: 1; }
+    #toast {
+      position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px;
+      background: var(--ink); color: #fff; border-radius: 8px; padding: 10px 16px;
+      display: none; z-index: 60; max-width: 90%;
+    }
+    #toast.err { background: var(--bad); }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Inventaris Aset TI</h1>
+  <span class="badge" id="badge-total">…</span>
+</header>
+
+<main>
+  <div class="chips" id="chips">
+    <div class="chip"><b id="c-total">–</b><span>Total</span></div>
+    <div class="chip"><b id="c-tersedia">–</b><span>Tersedia</span></div>
+    <div class="chip"><b id="c-dipakai">–</b><span>Dipakai/Dipinjam</span></div>
+    <div class="chip"><b id="c-rusak">–</b><span>Rusak/Hilang</span></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="q" placeholder="Cari kode / nama / SN / pemegang…" aria-label="Pencarian">
+    <div class="filters">
+      <select id="f-kategori" aria-label="Filter kategori"></select>
+      <select id="f-lokasi" aria-label="Filter lokasi"></select>
+      <select id="f-status" aria-label="Filter status">
+        <option value="">Status: semua</option>
+        <option>tersedia</option><option>dipakai</option><option>dipinjam</option>
+      </select>
+      <select id="f-kondisi" aria-label="Filter kondisi">
+        <option value="">Kondisi: semua</option>
+        <option>baik</option><option>rusak</option><option>hilang</option>
+      </select>
+    </div>
+    <button id="btn-tambah">+ Tambah Aset</button>
+    <button class="btn-ghost" id="btn-reset">Reset filter</button>
+  </div>
+
+  <div id="list" aria-live="polite"></div>
+</main>
+
+<!-- Form tambah/edit -->
+<div class="overlay" id="ov-form">
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="form-title">
+    <h2 id="form-title">Tambah Aset</h2>
+    <input type="hidden" id="fm-id">
+    <div class="field"><label>Kode aset <span class="req">*</span></label><input type="text" id="fm-kode" placeholder="TI-LAP-001"></div>
+    <div class="field"><label>Nama aset <span class="req">*</span></label><input type="text" id="fm-nama"></div>
+    <div class="field"><label>Kategori <span class="req">*</span></label><select id="fm-kategori"></select></div>
+    <div class="field"><label>Merek</label><input type="text" id="fm-merek"></div>
+    <div class="field"><label>Nomor seri (SN)</label><input type="text" id="fm-sn"></div>
+    <div class="field"><label>Lokasi <span class="req">*</span></label><input type="text" id="fm-lokasi" list="lokasi-list"><datalist id="lokasi-list"></datalist></div>
+    <div class="field"><label>Kondisi</label>
+      <select id="fm-kondisi"><option>baik</option><option>rusak</option><option>hilang</option></select>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="fm-status"><option>tersedia</option><option>dipakai</option><option>dipinjam</option></select>
+    </div>
+    <div class="field"><label>Pemegang (wajib bila dipakai/dipinjam)</label><input type="text" id="fm-pemegang"></div>
+    <div class="field"><label>Tanggal perolehan</label><input type="date" id="fm-tgl"></div>
+    <div class="field"><label>Keterangan</label><input type="text" id="fm-ket"></div>
+    <div class="form-actions">
+      <button class="btn-ghost" id="fm-batal">Batal</button>
+      <button id="fm-simpan">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog konfirmasi nonaktif -->
+<div class="overlay" id="ov-del">
+  <div class="panel" role="alertdialog" aria-modal="true">
+    <h2>Nonaktifkan aset?</h2>
+    <p id="del-text">…</p>
+    <div class="form-actions">
+      <button class="btn-ghost" id="del-batal">Batal</button>
+      <button class="btn-danger" id="del-ya">Nonaktifkan</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── util client ────────────────────────────────────────────────
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+var toastTimer = null;
+function toast(msg, isErr) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isErr ? 'err' : '';
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.style.display = 'none'; }, isErr ? 4200 : 2600);
+}
+function loading(btn, on) { btn.disabled = on; btn.textContent = on ? 'Menyimpan…' : btn.dataset.label; }
+
+// ── state ──────────────────────────────────────────────────────
+var OPSI = { kategori: [], lokasi: [] };
+var qTimer = null;
+
+function currentFilter() {
+  return {
+    q: document.getElementById('q').value,
+    kategori: document.getElementById('f-kategori').value,
+    lokasi: document.getElementById('f-lokasi').value,
+    status: document.getElementById('f-status').value,
+    kondisi: document.getElementById('f-kondisi').value
+  };
+}
+
+// ── render ─────────────────────────────────────────────────────
+function renderChips(meta) {
+  document.getElementById('c-total').textContent = meta.total;
+  document.getElementById('c-tersedia').textContent = meta.perStatus.tersedia || 0;
+  document.getElementById('c-dipakai').textContent =
+    (meta.perStatus.dipakai || 0) + (meta.perStatus.dipinjam || 0);
+  var rusak = 0; // dihitung ulang saat render list
+  document.getElementById('badge-total').textContent = meta.total + ' aset';
+}
+
+function renderList(items) {
+  var el = document.getElementById('list');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty">Belum ada aset yang cocok.<br>Tekan “+ Tambah Aset” untuk mulai.</div>';
+    return;
+  }
+  el.innerHTML = items.map(function (a) {
+    return '<div class="card">'
+      + '<div class="kode">' + esc(a.kode_aset) + ' — ' + esc(a.nama) + '</div>'
+      + '<div class="meta">' + esc(a.kategori) + ' · ' + esc(a.lokasi) + '</div>'
+      + '<div style="margin-top:4px">'
+      +   '<span class="pill ' + esc(a.kondisi) + '">' + esc(a.kondisi) + '</span>'
+      +   '<span class="pill ' + esc(a.status) + '">' + esc(a.status) + '</span>'
+      + '</div>'
+      + (a.pemegang ? '<div class="meta">Pemegang: ' + esc(a.pemegang) + '</div>' : '')
+      + '<div class="aksi">'
+      +   '<button class="btn-ghost" onclick="openEdit(\'' + esc(a.id) + '\')">Edit</button>'
+      +   '<button class="btn-danger" onclick="askDelete(\'' + esc(a.id) + '\',\'' + esc(a.kode_aset) + '\')">Nonaktifkan</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function refresh() {
+  google.script.run
+    .withSuccessHandler(function (res) {
+      renderChips(res.meta);
+      renderList(res.items);
+    })
+    .withFailureHandler(function (e) { toast((e && e.error) || 'Gagal memuat data', true); })
+    .listAset(currentFilter());
+}
+
+function loadOpsi() {
+  google.script.run
+    .withSuccessHandler(function (opsi) {
+      OPSI = opsi;
+      var fk = document.getElementById('f-kategori');
+      var fl = document.getElementById('f-lokasi');
+      var fmK = document.getElementById('fm-kategori');
+      var dl = document.getElementById('lokasi-list');
+      fk.innerHTML = '<option value="">Kategori: semua</option>' + opsi.kategori.map(function (k) {
+        return '<option>' + esc(k) + '</option>'; }).join('');
+      fl.innerHTML = '<option value="">Lokasi: semua</option>' + opsi.lokasi.map(function (l) {
+        return '<option>' + esc(l) + '</option>'; }).join('');
+      fmK.innerHTML = opsi.kategori.map(function (k) {
+        return '<option>' + esc(k) + '</option>'; }).join('');
+      dl.innerHTML = opsi.lokasi.map(function (l) {
+        return '<option value="' + esc(l) + '">'; }).join('');
+      refresh();
+    })
+    .withFailureHandler(function (e) { toast((e && e.error) || 'Gagal memuat opsi', true); })
+    .getOpsi();
+}
+
+// ── form ───────────────────────────────────────────────────────
+function openForm(mode, a) {
+  a = a || {};
+  document.getElementById('form-title').textContent = mode === 'edit' ? 'Edit Aset' : 'Tambah Aset';
+  ['kode_aset:fm-kode', 'nama:fm-nama', 'merek:fm-merek', 'serial_number:fm-sn',
+   'lokasi:fm-lokasi', 'pemegang:fm-pemegang', 'keterangan:fm-ket'].forEach(function (pair) {
+    var p = pair.split(':');
+    document.getElementById(p[1]).value = a[p[0]] != null ? a[p[0]] : '';
+  });
+  document.getElementById('fm-id').value = mode === 'edit' ? a.id : '';
+  if (mode === 'edit') {
+    document.getElementById('fm-kategori').value = a.kategori || '';
+    document.getElementById('fm-kondisi').value = a.kondisi || 'baik';
+    document.getElementById('fm-status').value = a.status || 'tersedia';
+    document.getElementById('fm-tgl').value = a.tanggal_perolehan || '';
+  } else {
+    document.getElementById('fm-kondisi').value = 'baik';
+    document.getElementById('fm-status').value = 'tersedia';
+    document.getElementById('fm-tgl').value = '';
+  }
+  document.getElementById('ov-form').classList.add('show');
+}
+window.openEdit = function (id) {
+  // ambil dari list cache terakhir via pencarian server ringan: pakai data terlihat
+  google.script.run.withSuccessHandler(function (res) {
+    var found = res.items.filter(function (x) { return x.id === id; })[0];
+    if (found) { openForm('edit', found); }
+  }).listAset({ q: '' });
+};
+
+function askDelete(id, kode) {
+  document.getElementById('del-text').textContent =
+    'Nonaktifkan ' + kode + '? Aset hilang dari daftar tapi tetap tersimpan.';
+  document.getElementById('ov-del').classList.add('show');
+  document.getElementById('del-ya').onclick = function () {
+    google.script.run
+      .withSuccessHandler(function () {
+        document.getElementById('ov-del').classList.remove('show');
+        toast('Aset dinonaktifkan');
+        refresh();
+      })
+      .withFailureHandler(function (e) { toast((e && e.error) || 'Gagal', true); })
+      .hapusAset(id);
+  };
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var btnSimpan = document.getElementById('fm-simpan');
+  btnSimpan.dataset.label = 'Simpan';
+
+  loadOpsi();
+
+  document.getElementById('btn-tambah').onclick = function () { openForm('tambah'); };
+  document.getElementById('btn-reset').onclick = function () {
+    ['q'].forEach(function (id) { document.getElementById(id).value = ''; });
+    ['f-kategori', 'f-lokasi', 'f-status', 'f-kondisi'].forEach(function (id) {
+      document.getElementById(id).value = '';
+    });
+    refresh();
+  };
+  document.getElementById('fm-batal').onclick = function () {
+    document.getElementById('ov-form').classList.remove('show');
+  };
+  document.getElementById('del-batal').onclick = function () {
+    document.getElementById('ov-del').classList.remove('show');
+  };
+
+  document.getElementById('q').addEventListener('input', function () {
+    clearTimeout(qTimer);
+    qTimer = setTimeout(refresh, 300); // debounce 300ms
+  });
+  ['f-kategori', 'f-lokasi', 'f-status', 'f-kondisi'].forEach(function (id) {
+    document.getElementById(id).addEventListener('change', refresh);
+  });
+
+  btnSimpan.onclick = function () {
+    var payload = {
+      kode_aset: document.getElementById('fm-kode').value,
+      nama: document.getElementById('fm-nama').value,
+      kategori: document.getElementById('fm-kategori').value,
+      merek: document.getElementById('fm-merek').value,
+      serial_number: document.getElementById('fm-sn').value,
+      lokasi: document.getElementById('fm-lokasi').value,
+      kondisi: document.getElementById('fm-kondisi').value,
+      status: document.getElementById('fm-status').value,
+      pemegang: document.getElementById('fm-pemegang').value,
+      tanggal_perolehan: document.getElementById('fm-tgl').value,
+      keterangan: document.getElementById('fm-ket').value
+    };
+    var id = document.getElementById('fm-id').value;
+    loading(btnSimpan, true);
+    var done = function (r) {
+      loading(btnSimpan, false);
+      document.getElementById('ov-form').classList.remove('show');
+      toast(id ? 'Perubahan tersimpan' : 'Aset tersimpan');
+      refresh();
+    };
+    var fail = function (e) {
+      loading(btnSimpan, false);
+      toast((e && e.error) || 'Gagal menyimpan', true);
+    };
+    if (id) {
+      google.script.run.withSuccessHandler(done).withFailureHandler(fail).ubahAset(id, payload);
+    } else {
+      google.script.run.withSuccessHandler(done).withFailureHandler(fail).tambahAset(payload);
+    }
+  };
+});
+</script>
+</body>
+</html>
