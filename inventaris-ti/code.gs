@@ -63,7 +63,21 @@ function _readAsetRaw() {
   var values = sheet.getRange(2, 1, lastRow - 1, heads.length).getValues();
   return values.map(function (row, i) {
     var o = {};
-    heads.forEach(function (h, c) { o[h] = row[c]; });
+    heads.forEach(function (h, c) {
+      var v = row[c];
+      // Sheets auto-parse teks tanggal/datetime → objek Date.
+      // google.script.run TIDAK bisa serialisasi Date → konversi balik ke string.
+      if (Object.prototype.toString.call(v) === '[object Date]') {
+        if (h === 'tanggal_perolehan') {
+          v = Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
+        } else if (h === 'created_at' || h === 'updated_at') {
+          v = Utilities.formatDate(v, TZ, "yyyy-MM-dd'T'HH:mm:ssXXX");
+        } else {
+          v = Utilities.formatDate(v, TZ, "yyyy-MM-dd'T'HH:mm:ssXXX");
+        }
+      }
+      o[h] = v;
+    });
     o.__rowIdx = i + 2; // nomor baris fisik di Sheet
     return o;
   });
