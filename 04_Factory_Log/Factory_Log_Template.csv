@@ -1,0 +1,4 @@
+app_id,nama_app,kemasan,tanggal_buat,pemilik,folder_drive_url,spreadsheet_url,webapp_url,trigger,template_docs_url,api_endpoint,versi_kode,versi_gem_analis,versi_gem_koder,status,catatan
+APP-N5-001,Digest Reporter,EMAIL_REPORT,2026-08-26,,,,,—,daily 07:30 Asia/Jakarta,—,—,1.0.0,1.2,1.2,ready_to_install,Paket di repo N5_Digest_Reporter
+APP-N1-001,Super Menu Sheet,SHEET_ENGINE,2026-08-26,,,,,—,—,—,—,1.0.0,1.2,1.2,ready_to_install,Validasi duplikat arsip dashboard
+APP-N9-001,Generator Surat,DOC_GENERATOR,2026-08-26,,,,,—,—,(isi setelah buat template),—,1.0.0,1.2,1.2,needs_user_template,Butuh doc_id + folder_id
