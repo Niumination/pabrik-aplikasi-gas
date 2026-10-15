@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roadmap Pabrik Aplikasi — Visual Interaktif</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --bg2: #111a2e;
+    --panel: #151f36;
+    --panel2: #1a2540;
+    --line: #2a3a5c;
+    --text: #e8eefc;
+    --muted: #93a0b8;
+    --brand: #4f8cff;
+    --brand2: #7c5cff;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --radius: 16px;
+    --shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(79,140,255,.18), transparent 60%),
+      radial-gradient(900px 500px at 90% 0%, rgba(124,92,255,.16), transparent 55%),
+      radial-gradient(800px 400px at 50% 100%, rgba(34,211,238,.08), transparent 50%),
+      var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(14px);
+    background: rgba(11,18,32,.78);
+    border-bottom: 1px solid rgba(42,58,92,.8);
+  }
+  .topbar-inner {
+    max-width: 1180px; margin: 0 auto;
+    display: flex; align-items: center; gap: 16px;
+    padding: 12px 20px; flex-wrap: wrap;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.02em;
+  }
+  .logo-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    display: grid; place-items: center; box-shadow: 0 6px 20px rgba(79,140,255,.35);
+  }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .nav button, .chip-btn {
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    padding: 8px 12px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  .nav button:hover, .nav button.active, .chip-btn:hover, .chip-btn.active {
+    color: var(--text); background: rgba(79,140,255,.12); border-color: rgba(79,140,255,.35);
+  }
+  .progress-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 6px 10px 6px 6px; border-radius: 999px; font-size: 12px; color: var(--muted);
+  }
+  .progress-ring {
+    --p: 0;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: conic-gradient(var(--ok) calc(var(--p) * 1%), rgba(255,255,255,.08) 0);
+    display: grid; place-items: center;
+  }
+  .progress-ring span {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--panel);
+    display: grid; place-items: center; font-size: 9px; color: var(--text); font-weight: 700;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  .hero {
+    display: grid; grid-template-columns: 1.4fr .9fr; gap: 22px; margin-bottom: 28px;
+  }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%), var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+  }
+  .hero h1 {
+    margin: 0 0 8px; font-size: clamp(1.6rem, 3vw, 2.25rem);
+    letter-spacing: -.03em; line-height: 1.15;
+  }
+  .hero .lead { color: var(--muted); margin: 0 0 18px; font-size: 15px; max-width: 56ch; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .badge {
+    font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
+  }
+  .badge.live { color: #bbf7d0; border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.1); }
+  .badge.blue { color: #bfdbfe; border-color: rgba(79,140,255,.35); background: rgba(79,140,255,.12); }
+  .badge.violet { color: #ddd6fe; border-color: rgba(124,92,255,.35); background: rgba(124,92,255,.12); }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn {
+    appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 700;
+    padding: 11px 16px; border-radius: 12px; color: white;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    box-shadow: 0 8px 24px rgba(79,140,255,.28);
+  }
+  .btn.secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--line); box-shadow: none;
+  }
+  .btn.ghost { background: rgba(255,255,255,.04); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+  }
+  .stat b { display: block; font-size: 1.4rem; letter-spacing: -.03em; }
+  .stat span { color: var(--muted); font-size: 12px; }
+
+  section { margin: 34px 0; }
+  .section-head {
+    display: flex; align-items: end; justify-content: space-between; gap: 12px;
+    margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .section-head h2 {
+    margin: 0; font-size: 1.25rem; letter-spacing: -.02em;
+  }
+  .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+  /* Architecture diagram */
+  .arch {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  @media (max-width: 800px) { .arch { grid-template-columns: 1fr; } }
+  .arch-col {
+    border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel2);
+    position: relative; min-height: 180px;
+  }
+  .arch-col h3 { margin: 0 0 8px; font-size: 14px; }
+  .arch-col ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .arch-col .tag {
+    position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 800;
+    padding: 3px 8px; border-radius: 999px; background: rgba(79,140,255,.15); color: #bfdbfe;
+  }
+  .flow-arrow {
+    text-align: center; color: var(--muted); font-size: 13px; margin: 10px 0;
+    letter-spacing: .08em;
+  }
+
+  /* Timeline */
+  .phase-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .timeline { position: relative; padding-left: 8px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 22px; top: 8px; bottom: 8px; width: 2px;
+    background: linear-gradient(var(--brand), var(--brand2), var(--cyan));
+    opacity: .55;
+  }
+  .phase {
+    position: relative; margin: 0 0 14px 0;
+    border: 1px solid var(--line); background: var(--panel);
+    border-radius: 16px; overflow: hidden;
+    transition: border-color .2s, transform .15s;
+  }
+  .phase:hover { border-color: rgba(79,140,255,.45); }
+  .phase.hidden { display: none; }
+  .phase-head {
+    display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center;
+    padding: 14px 16px; cursor: pointer; user-select: none;
+  }
+  .phase-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 800; font-size: 13px;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    position: relative; z-index: 1;
+  }
+  .phase-title { font-weight: 800; letter-spacing: -.01em; }
+  .phase-meta { color: var(--muted); font-size: 12px; }
+  .phase-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: end; }
+  .mini-tag {
+    font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted);
+  }
+  .mini-tag.done { color: #bbf7d0; border-color: rgba(34,197,94,.4); background: rgba(34,197,94,.1); }
+  .mini-tag.now { color: #fde68a; border-color: rgba(245,158,11,.4); background: rgba(245,158,11,.1); }
+  .mini-tag.next { color: #bfdbfe; border-color: rgba(79,140,255,.4); background: rgba(79,140,255,.1); }
+  .mini-tag.later { color: #ddd6fe; border-color: rgba(124,92,255,.35); background: rgba(124,92,255,.1); }
+  .phase-body {
+    display: none; padding: 0 16px 16px 72px; border-top: 1px solid transparent;
+  }
+  .phase.open .phase-body { display: block; border-top-color: var(--line); padding-top: 14px; }
+  .phase-body .grid2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 720px) {
+    .phase-body { padding-left: 16px; }
+    .phase-body .grid2 { grid-template-columns: 1fr; }
+  }
+  .box {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px;
+  }
+  .box h4 { margin: 0 0 8px; font-size: 13px; }
+  .box ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+  .checks { list-style: none; padding: 0; margin: 0; }
+  .checks li {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 0; border-bottom: 1px dashed rgba(42,58,92,.7); font-size: 13px;
+  }
+  .checks li:last-child { border-bottom: 0; }
+  .checks input { margin-top: 3px; accent-color: var(--ok); width: 16px; height: 16px; }
+  .chev {
+    color: var(--muted); transition: transform .2s; font-size: 18px; padding: 0 4px;
+  }
+  .phase.open .chev { transform: rotate(180deg); }
+
+  /* Product map */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .map {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px;
+  }
+  .product {
+    border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: var(--panel);
+    display: flex; flex-direction: column; gap: 8px; min-height: 170px;
+    transition: transform .12s, border-color .2s;
+  }
+  .product:hover { transform: translateY(-2px); border-color: rgba(79,140,255,.45); }
+  .product.hidden { display: none; }
+  .product .top { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+  .product h3 { margin: 0; font-size: 15px; letter-spacing: -.01em; }
+  .product p { margin: 0; color: var(--muted); font-size: 12.5px; flex: 1; }
+  .product .foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px;
+  }
+  .status-dot.ready { background: var(--ok); box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
+  .status-dot.idea { background: var(--brand); box-shadow: 0 0 0 3px rgba(79,140,255,.2); }
+  .status-dot.user { background: var(--warn); box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
+  .kemasan {
+    font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    color: #c4b5fd; background: rgba(124,92,255,.12); border: 1px solid rgba(124,92,255,.25);
+    padding: 3px 8px; border-radius: 999px;
+  }
+
+  /* Swimlanes / Gantt-ish */
+  .lanes { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+  .gantt {
+    min-width: 860px; border-collapse: collapse; width: 100%; font-size: 12px;
+  }
+  .gantt th, .gantt td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: left; }
+  .gantt th { color: var(--muted); font-weight: 600; background: rgba(0,0,0,.15); position: sticky; top: 0; }
+  .gantt td:first-child { font-weight: 700; white-space: nowrap; }
+  .bar {
+    height: 22px; border-radius: 7px; color: white; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; padding: 0 8px; white-space: nowrap;
+  }
+  .bar.a { background: linear-gradient(90deg, #2563eb, #4f8cff); width: 28%; }
+  .bar.b { background: linear-gradient(90deg, #7c3aed, #a78bfa); width: 38%; margin-left: 18%; }
+  .bar.c { background: linear-gradient(90deg, #0891b2, #22d3ee); width: 32%; margin-left: 40%; }
+  .bar.d { background: linear-gradient(90deg, #059669, #34d399); width: 26%; margin-left: 58%; }
+  .bar.e { background: linear-gradient(90deg, #d97706, #fbbf24); width: 30%; margin-left: 68%; color: #1f2937; }
+  .bar.f { background: linear-gradient(90deg, #db2777, #f472b6); width: 22%; margin-left: 78%; }
+
+  /* Decision tree */
+  .tree {
+    display: grid; gap: 10px;
+  }
+  .q {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  }
+  .q h4 { margin: 0 0 10px; font-size: 14px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt {
+    border: 1px solid var(--line); background: var(--panel2); color: var(--text);
+    padding: 10px 12px; border-radius: 12px; cursor: pointer; font: inherit; font-size: 13px;
+    text-align: left; max-width: 100%;
+  }
+  .opt:hover, .opt.selected {
+    border-color: rgba(79,140,255,.55); background: rgba(79,140,255,.12);
+  }
+  .result-box {
+    display: none; margin-top: 12px; padding: 14px; border-radius: 12px;
+    background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.3);
+  }
+  .result-box.show { display: block; }
+  .result-box b { color: #bbf7d0; }
+
+  /* Split work */
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
+  .split .card h3 { margin-top: 0; }
+  .split ul { color: var(--muted); font-size: 13px; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  @media (max-width: 800px) { .metrics { grid-template-columns: 1fr 1fr; } }
+  .metric {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+  }
+  .metric .v { font-size: 1.35rem; font-weight: 800; letter-spacing: -.03em; }
+  .metric .l { color: var(--muted); font-size: 12px; }
+
+  /* Legend / footer */
+  .footer {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+    color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+  }
+  .toast {
+    position: fixed; bottom: 18px; right: 18px; z-index: 100;
+    background: #0f172a; border: 1px solid var(--line); color: var(--text);
+    padding: 12px 14px; border-radius: 12px; box-shadow: var(--shadow);
+    display: none; max-width: 280px; font-size: 13px;
+  }
+  .toast.show { display: block; animation: pop .2s ease; }
+  @keyframes pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .print-only { display: none; }
+  @media print {
+    body { background: white; color: #111; }
+    .topbar, .btn, .nav, .toast, .phase-filters, .filters { display: none !important; }
+    .card, .phase, .product, .box, .metric { break-inside: avoid; box-shadow: none; border-color: #ddd; background: white; }
+    .phase-body { display: block !important; }
+    a { color: #111; }
+  }
+
+  .search {
+    flex: 1; min-width: 180px; max-width: 280px;
+    background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 999px; padding: 8px 14px; font: inherit; font-size: 13px;
+  }
+  .search:focus { outline: 1px solid var(--brand); }
+
+  .note {
+    font-size: 12px; color: var(--muted); margin-top: 8px;
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px; background: rgba(255,255,255,.06); padding: 1px 6px; border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">
+        <div class="logo-mark">⚙️</div>
+        <div>
+          <div>Pabrik Aplikasi</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:600;">Roadmap Interaktif · v1.0 · 2026-08-26</div>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <button data-go="overview" class="active">Overview</button>
+        <button data-go="timeline">Timeline</button>
+        <button data-go="products">Produk</button>
+        <button data-go="schedule">Jadwal</button>
+        <button data-go="decision">Pilih Kemasan</button>
+        <button data-go="progress">Progress</button>
+        <button data-go="risks">Risiko</button>
+      </nav>
+      <div class="progress-pill" title="Progress checklist lokal di browser ini">
+        <div class="progress-ring" id="ring"><span id="ringTxt">0%</span></div>
+        <span id="progressLabel">0/0 checklist</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- HERO -->
+    <div class="hero" id="overview">
+      <div class="card">
+        <div class="badges">
+          <span class="badge live">Serverless Google</span>
+          <span class="badge blue">Multi-kemasan</span>
+          <span class="badge violet">Gems + Apps Script</span>
+        </div>
+        <h1>Roadmap lengkap membangun & mematangkan Pabrik Aplikasi pribadi</h1>
+        <p class="lead">
+          Dari nol hingga mesin produksi berulang: brief + gambar → Analis → Koder →
+          artefak Google (Web App, Sheet Engine, Email Digest, Generator Surat, API, dan suite).
+          Dokumen ini adalah peta jalan visual — centang progress, filter produk, dan pilih kemasan secara interaktif.
+        </p>
+        <div class="cta-row">
+          <button class="btn" data-go="timeline">Lihat Timeline Fase</button>
+          <button class="btn secondary" data-go="progress">Checklist Saya</button>
+          <button class="btn ghost" onclick="window.print()">Cetak / PDF</button>
+          <button class="btn ghost" id="btnReset">Reset Progress</button>
+        </div>
+        <p class="note">Progress checklist tersimpan di <code>localStorage</code> browser ini (bukan di Google Drive).</p>
+      </div>
+      <div class="card">
+        <div class="stat-grid">
+          <div class="stat"><b>6</b><span>Fase fondasi pabrik</span></div>
+          <div class="stat"><b>3</b><span>Produk kode siap tempel</span></div>
+          <div class="stat"><b>10</b><span>Ide web app</span></div>
+          <div class="stat"><b>25+</b><span>Ide non–web app</span></div>
+          <div class="stat"><b>~3 jam</b><span>Target siklus app sederhana</span></div>
+          <div class="stat"><b>Rp0*</b><span>Stack Google kuota gratis*</span></div>
+        </div>
+        <p class="note" style="margin-top:12px;">*Tergantung jenis akun & kuota Apps Script / Gmail.</p>
+      </div>
+    </div>
+
+    <!-- VISION -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>1. Visi & arsitektur pabrik</h2>
+          <p>Tiga mesin tetap di satu Google Account — output menyesuaikan kemasan produk.</p>
+        </div>
+      </div>
+      <div class="arch">
+        <div class="arch-col">
+          <span class="tag">MESIN 1</span>
+          <h3>🧠 Analis (Niu-Prompt)</h3>
+          <ul>
+            <li>Gemini Gem + system instruction v1.2</li>
+            <li>Brief + gambar → blueprint</li>
+            <li>Pilih KEMASAN_PRODUK</li>
+            <li>Prompt eksekusi siap tempel</li>
+          </ul>
+        </div>
+        <div class="arch-col">
+          <span class="tag">MESIN 2</span>
+          <h3>🛠️ Koder (Niu-Bot)</h3>
+          <ul>
+            <li>Gemini Gem + instruction v1.2</li>
+            <li>Kode setup / code / HTML</li>
+            <li>Email, Docs merge, API…</li>
+            <li>Instruksi pasang & uji</li>
+          </ul>
+        </div>
+        <div class="arch-col">
+          <span class="tag">MESIN 3</span>
+          <h3>☁️ Infrastruktur Google</h3>
+          <ul>
+            <li>Sheets = database / CONFIG</li>
+            <li>Apps Script = runtime</li>
+            <li>Deploy / trigger / Drive / Docs</li>
+            <li>Factory Log & backup</li>
+          </ul>
+        </div>
+      </div>
+      <div class="flow-arrow">BRIEF + GAMBAR  →  BLUEPRINT  →  KODE  →  LIVE PRODUCT  →  FACTORY LOG</div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section id="timeline">
+      <div class="section-head">
+        <div>
+          <h2>2. Timeline fase (fondasi → skala)</h2>
+          <p>Klik fase untuk membuka detail. Filter status di bawah.</p>
+        </div>
+      </div>
+      <div class="phase-filters" id="phaseFilters">
+        <button class="chip-btn active" data-filter="all">Semua</button>
+        <button class="chip-btn" data-filter="done">Selesai (agen)</button>
+        <button class="chip-btn" data-filter="now">Giliran Anda</button>
+        <button class="chip-btn" data-filter="next">Berikutnya</button>
+        <button class="chip-btn" data-filter="later">Horizon</button>
+      </div>
+      <div class="timeline" id="timelineList"></div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="products">
+      <div class="section-head">
+        <div>
+          <h2>3. Peta produk</h2>
+          <p>Filter kemasan / status. Produk “siap tempel” sudah ada kodenya di workspace.</p>
+        </div>
+        <input class="search" id="productSearch" placeholder="Cari produk…" />
+      </div>
+      <div class="filters" id="productFilters">
+        <button class="chip-btn active" data-pfilter="all">Semua</button>
+        <button class="chip-btn" data-pfilter="ready">✅ Siap tempel</button>
+        <button class="chip-btn" data-pfilter="web">Web App</button>
+        <button class="chip-btn" data-pfilter="email">Email / Report</button>
+        <button class="chip-btn" data-pfilter="sheet">Sheet Engine</button>
+        <button class="chip-btn" data-pfilter="doc">Doc Generator</button>
+        <button class="chip-btn" data-pfilter="api">API / Bot</button>
+        <button class="chip-btn" data-pfilter="suite">Suite</button>
+      </div>
+      <div class="map" id="productMap"></div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section id="schedule">
+      <div class="section-head">
+        <div>
+          <h2>4. Jadwal eksekusi (contoh 6 minggu)</h2>
+          <p>Bukan deadline kaku — pola kapasitas realistis sambil kerja rutin.</p>
+        </div>
+      </div>
+      <div class="lanes">
+        <table class="gantt">
+          <thead>
+            <tr>
+              <th style="width:160px">Jalur</th>
+              <th>Minggu 1</th>
+              <th>Minggu 2</th>
+              <th>Minggu 3</th>
+              <th>Minggu 4</th>
+              <th>Minggu 5–6</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fondasi pabrik</td>
+              <td colspan="5"><div class="bar a">Gems v1.2 · Drive · SOP · Factory Log</div></td>
+            </tr>
+            <tr>
+              <td>N5 Digest</td>
+              <td colspan="5"><div class="bar b">Pasang · uji email · trigger · sambung data</div></td>
+            </tr>
+            <tr>
+              <td>N1 Super Menu</td>
+              <td colspan="5"><div class="bar c" style="margin-left:22%">Pasang · sesuaikan kolom unit</div></td>
+            </tr>
+            <tr>
+              <td>N9 Surat</td>
+              <td colspan="5"><div class="bar d" style="margin-left:35%">Template kop · generate PDF</div></td>
+            </tr>
+            <tr>
+              <td>Web app domain</td>
+              <td colspan="5"><div class="bar e" style="margin-left:48%">Buku Tamu → Inventaris / Tiket</div></td>
+            </tr>
+            <tr>
+              <td>Hardening</td>
+              <td colspan="5"><div class="bar f" style="margin-left:70%">Auth · QA Gem · suite</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <h4 style="margin:0 0 8px;">Sprint 6 hari (intensif)</h4>
+            <ul class="note" style="margin:0;padding-left:18px;color:var(--muted);">
+              <li>H1: Gems + folder + N5 setup</li>
+              <li>H2: N5 email live + N1</li>
+              <li>H3: SOP Drive + Factory Log</li>
+              <li>H4–5: N9 template + 1 surat PDF</li>
+              <li>H6: Web app Buku Tamu v1</li>
+            </ul>
+          </div>
+          <div>
+            <h4 style="margin:0 0 8px;">Mode hemat waktu (1 hari)</h4>
+            <ul class="note" style="margin:0;padding-left:18px;color:var(--muted);">
+              <li>2 Gems instruction tempel</li>
+              <li>1 Sheet N5 sampai email masuk inbox</li>
+              <li>SOP setengah halaman di Drive</li>
+              <li>Tunda N9 & web app ke weekend</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DECISION -->
+    <section id="decision">
+      <div class="section-head">
+        <div>
+          <h2>5. Decision tree — pilih kemasan produk</h2>
+          <p>Jawab beberapa pertanyaan. Hasil = kemasan yang disarankan untuk brief ke Analis.</p>
+        </div>
+      </div>
+      <div class="card tree">
+        <div class="q" id="decisionApp"></div>
+        <div class="result-box" id="decisionResult"></div>
+      </div>
+    </section>
+
+    <!-- SPLIT -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>6. Pembagian kerja agen vs Anda</h2>
+          <p>Agar tidak macet di hal yang hanya bisa dilakukan di akun Google pribadi.</p>
+        </div>
+      </div>
+      <div class="split">
+        <div class="card" style="border-color:rgba(34,197,94,.35);">
+          <h3>✅ Sudah / bisa dikerjakan agen</h3>
+          <ul>
+            <li>Rencana induk & breakdown arsitektur</li>
+            <li>10 ide web + 25 ide non-web</li>
+            <li>System instruction Analis & Koder v1.2</li>
+            <li>SOP, checklist, katalog, factory log template</li>
+            <li>Kode N5 Digest, N1 Super Menu, N9 Generator Surat</li>
+            <li>Roadmap visual interaktif (dokumen ini)</li>
+            <li>Coding lanjutan (W2, N6, API…) bila diminta</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color:rgba(245,158,11,.35);">
+          <h3>🧩 Khusus Anda (akun Google)</h3>
+          <ul>
+            <li>Buat Gems & tempel instruction</li>
+            <li>Authorize Apps Script / izin Drive-Docs-Gmail</li>
+            <li>Email penerima, jam trigger, sharing Sheet</li>
+            <li>Kop surat, logo, template Docs, Folder ID</li>
+            <li>Data produksi & kebijakan akses</li>
+            <li>Uji dengan user nyata unit</li>
+            <li>Keputusan domain app (TU, IT, panitia…)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS CHECKLIST -->
+    <section id="progress">
+      <div class="section-head">
+        <div>
+          <h2>7. Checklist progress “pabrik hidup”</h2>
+          <p>Centang item yang sudah Anda selesaikan di akun Google. Progress tersimpan lokal.</p>
+        </div>
+        <button class="btn secondary" id="btnExport">Export checklist JSON</button>
+      </div>
+      <div class="card">
+        <ul class="checks" id="masterChecks"></ul>
+      </div>
+    </section>
+
+    <!-- METRICS -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>8. Metrik sukses</h2>
+          <p>Target awal setelah pabrik v1 hidup.</p>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="v">≤ 3 jam</div><div class="l">Brief → produk live (sederhana)</div></div>
+        <div class="metric"><div class="v">≤ 3</div><div class="l">Revisi Koder per app v1</div></div>
+        <div class="metric"><div class="v">≥ 70%</div><div class="l">Lolos checklist deploy pertama</div></div>
+        <div class="metric"><div class="v">≥ 2</div><div class="l">Produk baru / bulan</div></div>
+      </div>
+    </section>
+
+    <!-- RISKS -->
+    <section id="risks">
+      <div class="section-head">
+        <div>
+          <h2>9. Risiko, batasan & mitigasi</h2>
+          <p>Batas jujur stack Sheets + Apps Script.</p>
+        </div>
+      </div>
+      <div class="map">
+        <div class="product"><h3>Kuota Apps Script / Mail</h3><p>Job gagal saat beban atau blast email.</p><div class="note">Mitigasi: desain ringan, dry-run, pecah penerima, pantau Executions.</div></div>
+        <div class="product"><h3>Sheet ≠ DB transactional</h3><p>Race condition & concurrency.</p><div class="note">Mitigasi: user sedikit, append-log, LockService bila perlu.</div></div>
+        <div class="product"><h3>Link “Anyone” bocor</h3><p>Data internal terekspos.</p><div class="note">Mitigasi: whitelist, hindari PII, review sharing tiap deploy.</div></div>
+        <div class="product"><h3>AI salah skema/kode</h3><p>Rework & bug diam-diam.</p><div class="note">Mitigasi: kontrak format kaku, review blueprint 5 menit, test checklist.</div></div>
+        <div class="product"><h3>Single account dependency</h3><p>Owner cuti / akun bermasalah.</p><div class="note">Mitigasi: backup kode, export Sheet, dokumentasi SOP.</div></div>
+        <div class="product"><h3>Overpromise domain kritis</h3><p>Keuangan regulated, realtime massal.</p><div class="note">Mitigasi: tolak atau migrasi stack lebih kuat untuk app kritis.</div></div>
+      </div>
+    </section>
+
+    <!-- NEXT -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>10. Langkah berikutnya (rekomendasi)</h2>
+          <p>Urutan paling aman agar momentum tidak putus.</p>
+        </div>
+      </div>
+      <div class="card">
+        <ol style="margin:0;padding-left:20px;color:var(--muted);">
+          <li style="margin-bottom:8px;"><b style="color:var(--text)">Hari ini:</b> Blok A di <code>USER_BAGIAN_SAYA.md</code> — 2 Gems + folder Drive + Factory Log.</li>
+          <li style="margin-bottom:8px;"><b style="color:var(--text)">Sesudahnya:</b> Pasang N5 sampai 1 email HTML masuk inbox (bukti pabrik berputar).</li>
+          <li style="margin-bottom:8px;"><b style="color:var(--text)">Lalu:</b> N1 Super Menu (15 menit) untuk otot operasi Sheet.</li>
+          <li style="margin-bottom:8px;"><b style="color:var(--text)">Ketika kop surat siap:</b> N9 — 1 PDF surat dari baris Sheet.</li>
+          <li style="margin-bottom:8px;"><b style="color:var(--text)">App domain pertama:</b> Buku Tamu (W2) lewat Gems atau minta coding W2 ke agen.</li>
+          <li><b style="color:var(--text)">Minggu 2+:</b> Hardening, suite Tata Usaha / Aset, Gem QA, katalog internal.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- FILES INDEX -->
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>11. Indeks artefak workspace</h2>
+          <p>File terkait roadmap ini di folder pabrik.</p>
+        </div>
+      </div>
+      <div class="card" style="font-size:13px;color:var(--muted);">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px 18px;">
+          <div>📄 <code>Pabrik_Aplikasi/README.md</code></div>
+          <div>📄 <code>USER_BAGIAN_SAYA.md</code></div>
+          <div>📄 <code>KATALOG_PRODUK.md</code></div>
+          <div>📄 <code>00_SOP/SOP_Produksi_Solusi.md</code></div>
+          <div>📄 <code>01_Gems/system_instruction_*_v1.2.txt</code></div>
+          <div>📦 <code>05_Apps/N5_Digest_Reporter/</code></div>
+          <div>📦 <code>05_Apps/N1_Super_Menu_Sheet/</code></div>
+          <div>📦 <code>05_Apps/N9_Generator_Surat/</code></div>
+          <div>📄 <code>Rencana_Pabrik_Aplikasi_Ekosistem.md</code></div>
+          <div>📄 <code>10_Ide_Web_App_Pabrik.md</code></div>
+          <div>📄 <code>Ide_Non_WebApp_Pabrik.md</code></div>
+          <div>🗺️ <code>Roadmap_Pabrik_Aplikasi.html</code> (ini)</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div>Pabrik Aplikasi · Roadmap Visual Interaktif · 26 Agustus 2026</div>
+      <div>Stack: Gemini Gems · Google Sheets · Apps Script · Docs · Gmail · Drive</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ========== DATA ========== */
+const PHASES = [
+  {
+    id: 'p0', num: '0', filter: 'done', statusTag: 'done', statusLabel: 'Selesai (dokumen)',
+    title: 'Fase 0 — Persiapan akun & akses',
+    meta: '1–2 jam · Pintu Google terbuka',
+    deliver: ['2FA', 'Cek Gems', 'Folder Drive', 'Izin Apps Script dummy'],
+    exit: 'Bisa buat Gem, Sheet, dan editor Apps Script tanpa error izin.',
+    checks: [
+      { id: 'p0_1', t: 'Login Google utama + 2FA aktif' },
+      { id: 'p0_2', t: 'Gemini Gems tersedia di akun' },
+      { id: 'p0_3', t: 'Uji buat Sheet + Apps Script kosong + authorize' }
+    ]
+  },
+  {
+    id: 'p1', num: '1', filter: 'now', statusTag: 'now', statusLabel: 'Giliran Anda',
+    title: 'Fase 1 — Mesin Analisis (Gem Niu-Prompt)',
+    meta: '2–4 jam · Instruction v1.2 sudah ditulis agen',
+    deliver: ['Gem Analis', 'Backup instruction', '3 sample blueprint'],
+    exit: 'Brief 5 kalimat selalu menghasilkan blok PROMPT UNTUK KODER yang utuh.',
+    checks: [
+      { id: 'p1_1', t: 'Buat Gem Niu-Prompt & tempel system_instruction_analis_v1.2.txt' },
+      { id: 'p1_2', t: 'Uji 1 brief sederhana → blueprint konsisten' },
+      { id: 'p1_3', t: 'Backup instruction ke Drive' }
+    ]
+  },
+  {
+    id: 'p2', num: '2', filter: 'now', statusTag: 'now', statusLabel: 'Giliran Anda',
+    title: 'Fase 2 — Mesin Eksekusi (Gem Niu-Bot)',
+    meta: '3–5 jam · Instruction v1.2 + 3 produk contoh sudah ada',
+    deliver: ['Gem Koder', 'Hello-factory atau N5 live', 'Instruction stabil'],
+    exit: 'Minimal 1 produk hasil siklus (bisa N5/N1) benar-benar jalan di akun Anda.',
+    checks: [
+      { id: 'p2_1', t: 'Buat Gem Niu-Bot & tempel system_instruction_koder_v1.2.txt' },
+      { id: 'p2_2', t: 'Pasang N5 Digest sampai email uji diterima' },
+      { id: 'p2_3', t: 'Pasang N1 Super Menu & uji validasi/arsip' }
+    ]
+  },
+  {
+    id: 'p3', num: '3', filter: 'now', statusTag: 'now', statusLabel: 'Giliran Anda',
+    title: 'Fase 3 — Standarisasi infrastruktur pabrik',
+    meta: '2–3 jam · SOP & katalog sudah disiapkan agen',
+    deliver: ['Folder pabrik di Drive', 'SOP', 'Factory Log', 'Naming'],
+    exit: 'Anda 3 bulan kemudian masih bisa ikuti SOP tanpa menebak.',
+    checks: [
+      { id: 'p3_1', t: 'Mirror folder Pabrik_Aplikasi di Google Drive' },
+      { id: 'p3_2', t: 'Salin SOP_Produksi_Solusi.md ke Drive' },
+      { id: 'p3_3', t: 'Buat Sheet Factory_Log dari template CSV' },
+      { id: 'p3_4', t: 'Isi ≥2 baris log (N5, N1)' }
+    ]
+  },
+  {
+    id: 'p4', num: '4', filter: 'next', statusTag: 'next', statusLabel: 'Berikutnya',
+    title: 'Fase 4 — Pilot domain nyata',
+    meta: '4–8 jam · Inventaris / Buku Tamu / Surat',
+    deliver: ['1 web app ATAU N9 surat PDF produksi', 'Post-mortem instruction'],
+    exit: 'Produk dipakai ≥3 hari / ≥10 transaksi tanpa rusak total.',
+    checks: [
+      { id: 'p4_1', t: 'N9: template kop surat + 1 PDF generate sukses' },
+      { id: 'p4_2', t: 'Web app pertama (Buku Tamu / domain Anda) live' },
+      { id: 'p4_3', t: 'Uji dengan minimal 1 user lain' },
+      { id: 'p4_4', t: 'Catat bug → update catatan pabrik' }
+    ]
+  },
+  {
+    id: 'p5', num: '5', filter: 'later', statusTag: 'later', statusLabel: 'Horizon',
+    title: 'Fase 5 — Hardening & pematangan',
+    meta: 'Minggu 2+ · kualitas produksi',
+    deliver: ['Auth/whitelist', 'XSS escape standar', 'Gem QA', 'Suite paket'],
+    exit: 'Definition of done keamanan dasar sebelum deploy publik.',
+    checks: [
+      { id: 'p5_1', t: 'Standar auth/whitelist untuk app internal' },
+      { id: 'p5_2', t: 'Gem QA opsional untuk review kode' },
+      { id: 'p5_3', t: 'Satu suite (TU / Aset / Panitia) dirakit' },
+      { id: 'p5_4', t: 'Metrik: cycle time app kedua tercatat' }
+    ]
+  },
+  {
+    id: 'p6', num: '6', filter: 'later', statusTag: 'later', statusLabel: 'Horizon',
+    title: 'Fase 6 — Skala platform kecil',
+    meta: '1–2 bulan · gallery, library, multi-user pabrik',
+    deliver: ['App gallery', 'Library Utils.gs', 'Share Gems tim', 'Klasifikasi data'],
+    exit: 'Pabrik dipakai lebih dari satu orang dengan aturan jelas.',
+    checks: [
+      { id: 'p6_1', t: 'Katalog internal link semua produk live' },
+      { id: 'p6_2', t: 'Library Apps Script berbagi utilitas' },
+      { id: 'p6_3', t: 'Kebijakan data publik/internal/sensitif' }
+    ]
+  }
+];
+
+const PRODUCTS = [
+  { id:'N5', name:'Digest Reporter', desc:'Email HTML KPI harian/mingguan dari multi-sumber Sheet.', kemasan:'EMAIL_REPORT', status:'ready', tags:['ready','email'], path:'05_Apps/N5_Digest_Reporter/' },
+  { id:'N1', name:'Super Menu Sheet', desc:'Validasi, duplikat, generate ID, arsip, dashboard di menu Sheet.', kemasan:'SHEET_ENGINE', status:'ready', tags:['ready','sheet'], path:'05_Apps/N1_Super_Menu_Sheet/' },
+  { id:'N9', name:'Generator Surat', desc:'Merge baris Sheet → Docs/PDF di Drive.', kemasan:'DOC_GENERATOR', status:'user', tags:['ready','doc','user'], path:'05_Apps/N9_Generator_Surat/' },
+  { id:'W2', name:'Buku Tamu Digital', desc:'Check-in tamu cepat di HP resepsionis.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W8', name:'Direktori Kontak', desc:'Vendor & mitra searchable.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W1', name:'Inventaris Aset TI', desc:'Aset, pemegang, kondisi, filter status.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W3', name:'Peminjaman Barang', desc:'Pinjam-kembali + stok + terlambat.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W4', name:'Tiket Keluhan', desc:'Helpdesk internal status workflow.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W5', name:'Absensi Kegiatan', desc:'Daftar hadir rapat/event digital.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W6', name:'Register Surat', desc:'Agenda surat masuk/keluar.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W7', name:'Stok ATK', desc:'Stok habis pakai + alert minimum.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W9', name:'Checklist Inspeksi', desc:'Form cek harian + temuan.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'W10', name:'Pipeline Tugas', desc:'Kanban backlog sederhana.', kemasan:'WEB_APP', status:'idea', tags:['web'], path:'10_Ide_Web_App_Pabrik.md' },
+  { id:'N6', name:'Reminder Jatuh Tempo', desc:'Email H-7/H-3/H-0 untuk kontrak/servis/pinjam.', kemasan:'EMAIL_REPORT', status:'idea', tags:['email'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'N3', name:'Approval di Sheet', desc:'Alur setujui/tolak + notifikasi email.', kemasan:'SHEET_ENGINE', status:'idea', tags:['sheet','email'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'N10', name:'Sertifikat Massal', desc:'Merge peserta → piagam PDF.', kemasan:'DOC_GENERATOR', status:'idea', tags:['doc'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'N13', name:'JSON API Sheet', desc:'doGet/doPost untuk integrasi sistem lain.', kemasan:'JSON_API', status:'idea', tags:['api'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'N20', name:'Form Router', desc:'Google Form → cabang tab/email berbeda.', kemasan:'FORM_ROUTER', status:'idea', tags:['api'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'N18', name:'Folder Drive Factory', desc:'Pohon folder proyek otomatis + sharing.', kemasan:'DRIVE_AUTOMATION', status:'idea', tags:['api'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'N21', name:'Klasifikasi AI', desc:'Gemini API ringkas/kategori baris data.', kemasan:'HYBRID', status:'idea', tags:['api'], path:'Ide_Non_WebApp_Pabrik.md' },
+  { id:'S1', name:'Suite Tata Usaha', desc:'Form + surat + reminder + digest.', kemasan:'HYBRID_SUITE', status:'idea', tags:['suite'], path:'KATALOG_PRODUK.md' },
+  { id:'S2', name:'Suite Aset', desc:'Inventaris + QR + reminder + digest.', kemasan:'HYBRID_SUITE', status:'idea', tags:['suite','web'], path:'KATALOG_PRODUK.md' },
+  { id:'S3', name:'Suite Panitia', desc:'Hadir + sertifikat + mail merge + folder.', kemasan:'HYBRID_SUITE', status:'idea', tags:['suite','doc'], path:'KATALOG_PRODUK.md' },
+  { id:'S4', name:'Suite Helpdesk', desc:'Tiket/Form + eskalasi + AI + digest.', kemasan:'HYBRID_SUITE', status:'idea', tags:['suite','email'], path:'KATALOG_PRODUK.md' }
+];
+
+const MASTER_CHECKS = [
+  { id:'m_gems', t:'Dua Gems (Analis + Koder) aktif dengan instruction v1.2' },
+  { id:'m_drive', t:'Folder Pabrik_Aplikasi mirror di Google Drive' },
+  { id:'m_sop', t:'SOP produksi tersimpan & bisa diikuti' },
+  { id:'m_n5', t:'N5 Digest: 1 email nyata diterima' },
+  { id:'m_n1', t:'N1 Super Menu: validasi & arsip jalan' },
+  { id:'m_log', t:'Factory Log terisi ≥ 2 produk' },
+  { id:'m_n9', t:'N9: 1 Doc/PDF surat berhasil di-generate (bonus)' },
+  { id:'m_web', t:'Minimal 1 Web App domain live (bonus besar)' },
+  { id:'m_trigger', t:'Minimal 1 trigger produksi stabil 3 hari' },
+  { id:'m_backup', t:'Backup kode .gs ke Drive untuk setiap app live' }
+];
+
+/* ========== STATE ========== */
+const STORE_KEY = 'pabrik_roadmap_progress_v1';
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveState(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+let state = loadState();
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ========== RENDER PHASES ========== */
+function renderPhases(filter = 'all') {
+  const root = document.getElementById('timelineList');
+  root.innerHTML = '';
+  PHASES.forEach((p, idx) => {
+    if (filter !== 'all' && p.filter !== filter) return;
+    const open = state['open_' + p.id] === true || (filter !== 'all' && idx === 0);
+    const div = document.createElement('div');
+    div.className = 'phase' + (open ? ' open' : '');
+    div.dataset.filter = p.filter;
+    div.innerHTML = `
+      <div class="phase-head" data-toggle="${p.id}">
+        <div class="phase-num">${p.num}</div>
+        <div>
+          <div class="phase-title">${p.title}</div>
+          <div class="phase-meta">${p.meta}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="phase-tags"><span class="mini-tag ${p.statusTag}">${p.statusLabel}</span></div>
+          <span class="chev">▾</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="grid2">
+          <div class="box">
+            <h4>Deliverable</h4>
+            <ul>${p.deliver.map(d => `<li>${d}</li>`).join('')}</ul>
+            <p class="note" style="margin-top:10px;"><b style="color:var(--text)">Exit:</b> ${p.exit}</p>
+          </div>
+          <div class="box">
+            <h4>Checklist fase</h4>
+            <ul class="checks">
+              ${p.checks.map(c => `
+                <li>
+                  <input type="checkbox" data-check="${c.id}" ${state[c.id] ? 'checked' : ''}/>
+                  <span>${c.t}</span>
+                </li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>`;
+    root.appendChild(div);
+  });
+}
+
+/* ========== PRODUCTS ========== */
+function statusLabel(s) {
+  if (s === 'ready') return '<span class="status-dot ready"></span>Siap tempel';
+  if (s === 'user') return '<span class="status-dot user"></span>Siap + bagian user';
+  return '<span class="status-dot idea"></span>Ide / brief';
+}
+function renderProducts(filter = 'all', q = '') {
+  const root = document.getElementById('productMap');
+  root.innerHTML = '';
+  const query = q.trim().toLowerCase();
+  PRODUCTS.forEach(p => {
+    const matchFilter = filter === 'all' || p.tags.includes(filter) || (filter === 'ready' && (p.status === 'ready' || p.status === 'user'));
+    const matchQ = !query || (p.name + p.desc + p.id + p.kemasan).toLowerCase().includes(query);
+    if (!matchFilter || !matchQ) return;
+    const el = document.createElement('div');
+    el.className = 'product';
+    el.innerHTML = `
+      <div class="top">
+        <h3>${p.id} · ${p.name}</h3>
+        <span class="kemasan">${p.kemasan}</span>
+      </div>
+      <p>${p.desc}</p>
+      <div class="foot">
+        <span style="font-size:12px;color:var(--muted);">${statusLabel(p.status)}</span>
+        <span style="font-size:11px;color:var(--muted);">${p.path}</span>
+      </div>`;
+    root.appendChild(el);
+  });
+  if (!root.children.length) {
+    root.innerHTML = '<div class="card" style="grid-column:1/-1;color:var(--muted);">Tidak ada produk untuk filter ini.</div>';
+  }
+}
+
+/* ========== MASTER CHECKS ========== */
+function renderMasterChecks() {
+  const root = document.getElementById('masterChecks');
+  root.innerHTML = MASTER_CHECKS.map(c => `
+    <li>
+      <input type="checkbox" data-check="${c.id}" ${state[c.id] ? 'checked' : ''}/>
+      <span>${c.t}</span>
+    </li>`).join('');
+}
+
+/* ========== PROGRESS ========== */
+function allCheckIds() {
+  const ids = MASTER_CHECKS.map(c => c.id);
+  PHASES.forEach(p => p.checks.forEach(c => ids.push(c.id)));
+  return ids;
+}
+function updateProgress() {
+  const ids = allCheckIds();
+  const done = ids.filter(id => state[id]).length;
+  const pct = ids.length ? Math.round(done / ids.length * 100) : 0;
+  document.getElementById('ring').style.setProperty('--p', pct);
+  document.getElementById('ringTxt').textContent = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done}/${ids.length} checklist`;
+}
+
+/* ========== DECISION TREE ========== */
+const decisionSteps = [
+  {
+    id: 'q1',
+    q: 'Apakah pengguna harus mengisi data dari HP di lapangan / publik?',
+    opts: [
+      { id: 'yes', label: 'Ya — butuh form di browser/HP', next: 'q_field' },
+      { id: 'no', label: 'Tidak — user internal di meja/Sheet/email', next: 'q2' }
+    ]
+  },
+  {
+    id: 'q_field',
+    q: 'Apakah Anda mau bangun UI sendiri atau cukup Google Form?',
+    opts: [
+      { id: 'ui', label: 'UI sendiri (kontrol tampilan)', result: { k: 'WEB_APP', why: 'Kontrol UX lapangan penuh lewat HTML Service + deploy Web App. Mulai dari Buku Tamu (W2).' } },
+      { id: 'form', label: 'Google Form sudah cukup', result: { k: 'FORM_ROUTER', why: 'Cepat, akrab, onFormSubmit routing ke Sheet/email. Cocok gerbang layanan umum.' } }
+    ]
+  },
+  {
+    id: 'q2',
+    q: 'Apakah output utamanya dokumen/PDF (surat, sertifikat, notulen)?',
+    opts: [
+      { id: 'yes', label: 'Ya — dokumen adalah deliverable', result: { k: 'DOC_GENERATOR', why: 'Pakai pola N9: Sheet + template Docs + folder Drive. Sertifikat = N10 turunan N9.' } },
+      { id: 'no', label: 'Bukan dokumen', next: 'q3' }
+    ]
+  },
+  {
+    id: 'q3',
+    q: 'Nilai utamanya “mengingatkan / mendorong orang” lewat notifikasi?',
+    opts: [
+      { id: 'yes', label: 'Ya — agar orang bertindak', result: { k: 'EMAIL_REPORT', why: 'Pola N5 Digest / N6 Reminder. Zero training UI; masuk ke inbox.' } },
+      { id: 'no', label: 'Bukan fokus notifikasi', next: 'q4' }
+    ]
+  },
+  {
+    id: 'q4',
+    q: 'Siapa konsumen utamanya?',
+    opts: [
+      { id: 'system', label: 'Sistem lain (otomasi, bot, app mobile)', result: { k: 'JSON_API', why: 'doGet/doPost JSON + API key. Pintu ke Make/n8n/Telegram/klien custom.' } },
+      { id: 'sheet', label: 'Manusia yang sehari-hari di Spreadsheet', result: { k: 'SHEET_ENGINE', why: 'Menu + script bound seperti N1 Super Menu. Paling hemat untuk admin data.' } },
+      { id: 'many', label: 'Campuran banyak modul', result: { k: 'HYBRID_SUITE', why: 'Rakit bertahap: Form/Web + Sheet + Email + Docs. Lihat Suite TU/Aset/Panitia/Helpdesk.' } }
+    ]
+  }
+];
+
+let decisionPath = [];
+function renderDecision(stepId = 'q1') {
+  const step = decisionSteps.find(s => s.id === stepId);
+  const box = document.getElementById('decisionApp');
+  const res = document.getElementById('decisionResult');
+  res.classList.remove('show');
+  if (!step) return;
+  box.innerHTML = `
+    <h4>${step.q}</h4>
+    <div class="opts">
+      ${step.opts.map(o => `<button class="opt" data-opt='${JSON.stringify(o)}'>${o.label}</button>`).join('')}
+    </div>
+    <p class="note"><button class="chip-btn" id="decReset" type="button">Ulangi dari awal</button></p>`;
+  box.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const o = JSON.parse(btn.dataset.opt);
+      decisionPath.push(o.label);
+      if (o.result) {
+        res.innerHTML = `
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Rekomendasi kemasan</div>
+          <div style="font-size:1.25rem;font-weight:800;letter-spacing:-.02em;margin-bottom:8px;">
+            <b>${o.result.k}</b>
+          </div>
+          <div style="color:var(--muted);font-size:13px;margin-bottom:10px;">${o.result.why}</div>
+          <div class="note">Brief ke Analis: sebutkan eksplisit <code>KEMASAN_PRODUK: ${o.result.k}</code></div>
+          <div class="note" style="margin-top:6px;">Jalur jawaban: ${decisionPath.join(' → ')}</div>`;
+        res.classList.add('show');
+        toast('Kemasan: ' + o.result.k);
+      } else if (o.next) {
+        renderDecision(o.next);
+      }
+    });
+  });
+  const r = document.getElementById('decReset');
+  if (r) r.addEventListener('click', () => { decisionPath = []; renderDecision('q1'); });
+}
+
+/* ========== EVENTS ========== */
+document.getElementById('timelineList').addEventListener('click', (e) => {
+  const head = e.target.closest('[data-toggle]');
+  if (head) {
+    const id = head.dataset.toggle;
+    const phase = head.closest('.phase');
+    phase.classList.toggle('open');
+    state['open_' + id] = phase.classList.contains('open');
+    saveState(state);
+    return;
+  }
+});
+
+document.body.addEventListener('change', (e) => {
+  if (e.target.matches('input[data-check]')) {
+    const id = e.target.dataset.check;
+    state[id] = e.target.checked;
+    saveState(state);
+    // sync same ids
+    document.querySelectorAll(`input[data-check="${id}"]`).forEach(inp => { inp.checked = e.target.checked; });
+    updateProgress();
+    if (e.target.checked) toast('Checklist disimpan');
+  }
+});
+
+document.getElementById('phaseFilters').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-filter]');
+  if (!btn) return;
+  document.querySelectorAll('#phaseFilters .chip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPhases(btn.dataset.filter);
+  bindCheckSync();
+});
+
+document.getElementById('productFilters').addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-pfilter]');
+  if (!btn) return;
+  document.querySelectorAll('#productFilters .chip-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(btn.dataset.pfilter, document.getElementById('productSearch').value);
+});
+
+document.getElementById('productSearch').addEventListener('input', (e) => {
+  const active = document.querySelector('#productFilters .chip-btn.active');
+  renderProducts(active ? active.dataset.pfilter : 'all', e.target.value);
+});
+
+document.querySelectorAll('[data-go]').forEach(el => {
+  el.addEventListener('click', () => {
+    const id = el.dataset.go;
+    document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.go === id));
+    const target = document.getElementById(id);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (confirm('Reset semua progress checklist di browser ini?')) {
+    state = {};
+    saveState(state);
+    renderPhases(document.querySelector('#phaseFilters .active')?.dataset.filter || 'all');
+    renderMasterChecks();
+    updateProgress();
+    toast('Progress direset');
+  }
+});
+
+document.getElementById('btnExport').addEventListener('click', () => {
+  const ids = allCheckIds();
+  const payload = {
+    exported_at: new Date().toISOString(),
+    progress_pct: Math.round(ids.filter(id => state[id]).length / ids.length * 100),
+    checks: ids.map(id => ({ id, done: !!state[id] }))
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'pabrik-roadmap-progress.json';
+  a.click();
+  toast('JSON diexport');
+});
+
+function bindCheckSync() { updateProgress(); }
+
+/* ========== INIT ========== */
+renderPhases('all');
+renderProducts('all');
+renderMasterChecks();
+renderDecision('q1');
+updateProgress();
+</script>
+</body>
+</html>
